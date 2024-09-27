@@ -20,7 +20,7 @@ root.render(
         <Route path='/' element={<App />} />
         <Route path='/feedback' element={<Feedback />} />
         <Route path='/admin/feedback/:type' element={<AdminShowFeedbacks />} />
-        <Route path='/feedback/create/:type' element={<CreateFeedback />} />
+        <Route path='/feedback/create/' element={<CreateFeedback />} />
         <Route path='/feedback/edit/' element={<UpdateFeedback />} />
         <Route path='/feedback/packages' element={<ShowPackagesFeedbacks />} />
         <Route path='/feedback/instructors' element={<ShowInstructorsFeedbacks />} />

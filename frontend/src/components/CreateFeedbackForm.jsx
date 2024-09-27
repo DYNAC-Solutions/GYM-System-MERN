@@ -6,7 +6,42 @@ import { faAt } from '@fortawesome/free-solid-svg-icons';
 import { SetRate } from './SetRate';
 import Axios from 'axios';
 
+const FeedBackType = ({ type, whenChange }) => {
+  return (
+    <div className="flex gap-3 items-center mb-2">
+      <p
+        className={`${
+          type === 'packages' ? 'text-yellow-400' : 'text-yellow-100'
+        } uppercase text-[1em] font-semibold tracking-widest transition-all ease-in-out duration-300 cursor-pointer`}
+        onClick={() => whenChange('packages')}
+      >
+        Package
+      </p>
+      <div className={`w-7 h-3 bg-stone-500 opacity-75 rounded-xl`}>
+        <div
+          className={`${
+            type === 'packages' ? 'ml-1' : 'ml-4'
+          } w-2 h-2 bg-amber-400 rounded-xl mt-[2px] transition-all ease-in-out duration-300`}
+        ></div>
+      </div>
+      <p
+        className={`${
+          type === 'instructors' ? 'text-yellow-400' : 'text-yellow-100'
+        } uppercase text-[1em] font-semibold tracking-widest transition-all ease-in-out duration-300 cursor-pointer`}
+        onClick={() => whenChange('instructors')}
+      >
+        Instructor
+      </p>
+    </div>
+  );
+};
+
+
 const CreateInstructorFeedback = () => {
+
+  const instructorList = instructors;
+  const packagesTypes = ['silver', 'gold', 'platinum'];
+  const feedbackTypes = ['question', 'suggestion', 'complaint'];
 
   const [ifID, setifID] = useState(0);
   const [fullName, setFullName] = useState('');
@@ -15,13 +50,17 @@ const CreateInstructorFeedback = () => {
   const [reviewType, setReviewType] = useState('');
   const [feedbackNote, setFeedbackNote] = useState('');
   const [rate, setRate] = useState(0);
-
-  const instructorList = instructors;
-  const feedbackTypes = ['question', 'suggestion', 'complaint'];
+  const [type, setType] = useState('packages');
+  const [dataList, setDataList] = useState(packagesTypes);
 
   const inputRating = (newRate) => {
     setRate(newRate + 1);
   }
+
+  const changeType = (thisType) => {
+    setType(thisType);
+    setDataList(thisType == 'packages' ? packagesTypes : instructorList );
+  };
 
   useEffect(() => {
     fetchMaxIdAndSetId();
@@ -78,6 +117,8 @@ const CreateInstructorFeedback = () => {
   return (
     <div>
       <form className='flex flex-col gap-2 items-center w-[30vw]' onSubmit={handleSubmit}>
+        <FeedBackType type={type} whenChange={changeType} />
+        <input type="hidden" name={type} />
         <div className='w-full flex items-center relative'>
           <input
             className='w-full hover:shadow-md hover:shadow-zinc-900 hover:outline-none relative py-1 px-3 pr-10 rounded-lg focus:shadow-md focus:shadow-zinc-900 focus:outline-none transition-all duration-500'
@@ -107,7 +148,14 @@ const CreateInstructorFeedback = () => {
           </label>
         </div>
         <div className='w-full flex items-center relative'>
-          <label className='flex-1 text-center' htmlFor="review_instructor">Instructor</label>
+          
+          {
+              type === 'packages' ? (
+                <label className='flex-1 text-center font-semibold text-stone-800' htmlFor="review_instructor">Package</label>
+              ) : (
+                <label className='flex-1 text-center font-semibold text-stone-800' htmlFor="review_instructor">Instructor</label>
+              )
+            }
           <select
             className='flex-[2] hover:shadow-md hover:shadow-zinc-900 hover:outline-none outline-none border-none py-1 px-3 rounded-lg focus:shadow-md focus:shadow-zinc-900 focus:outline-none transition-all duration-500'
             name="review_instructor"
@@ -115,9 +163,17 @@ const CreateInstructorFeedback = () => {
             value={instructor}
             onChange={(e) => setInstructor(e.target.value)} // Update the state
           >
-            <option className='text-zinc-400' value="">Select Instructor . .</option>
+            
             {
-              instructorList.map((content, index) => (
+              type === 'packages' ? (
+                <option className='text-zinc-400' value="">Select Package ..</option>
+              ) : (
+                <option className='text-zinc-400' value="">Select Instructor ..</option>
+              )
+            }
+            
+            {
+              dataList.map((content, index) => (
                 <option key={index} className='capitalize' value={content}>{content}</option>
               ))
             }
