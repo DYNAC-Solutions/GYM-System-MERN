@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp, faThumbsDown, faChevronLeft, faChevronRight, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from '../components/SearchBar';
 import Axios from 'axios';
+import jsPDF from 'jspdf';
 
 const TableHead = ({ content }) => {
   return (
@@ -127,14 +128,54 @@ export const ShowFeedbacksTable = ({ reviewType }) => {
     }
   };
 
+  const downloadPDF = () => {
+    const pdf = new jsPDF();
+    const title = 'Feedback Details';
+    const headers = ['Date', 'Customer', 'Email', reviewType === 'instructors' ? 'Instructor' : 'Package', 'Rating', 'Feedback'];
+    
+    pdf.setFontSize(20);
+    pdf.text(title, 20, 20);
+    pdf.setFontSize(12);
+    
+    // Add table headers
+    let y = 40;
+    headers.forEach((header, index) => {
+      pdf.text(header, 20 + index * 40, y);
+    });
+    
+    // Add table data
+    dataSet.forEach((feedback, index) => {
+      const row = [
+        new Date(feedback.pfDate).toLocaleDateString(),
+        feedback.cusName,
+        feedback.cusEmail,
+        feedback.pName,
+        feedback.pfRate,
+        feedback.pfNote,
+      ];
+      y += 10; // Move down for each row
+      row.forEach((cell, index) => {
+        pdf.text(cell.toString(), 20 + index * 40, y);
+      });
+    });
+
+    pdf.save('Feedback_Details.pdf');
+  };
+
   return (
     <div className='flex justify-center flex-col gap-6 p-10 bg-[#c7c7c72c] rounded-2xl backdrop-blur-sm items-center'>
-      <SearchBar placeholder='Search here ..' onInput={handleSearch} />
+      <h1 className='text-2xl font-bold text-center mb-4'>Customer Feedbacks</h1>
+      <SearchBar onSearch={handleSearch} />
+      <button onClick={downloadPDF} className="bg-blue-600 text-white px-4 py-2 rounded-md mb-4">Download PDF</button>
+
       <div className='flex flex-col justify-center items-center p-3 rounded-xl bg-[#c7c7c7c4] w-[80vw]'>
-        <TableHead content={tableHead} />
-        <TableData content={dataSet} deleteFeedback={deleteFeedback} />
-        <TablePagination nowIndex={thisPage - 1} totalIndex={maxPages} paginFunction={handlePagination} />
+      
+      <TableHead content={tableHead} />
+      <TableData content={dataSet} deleteFeedback={deleteFeedback} />
+      <TablePagination nowIndex={thisPage} totalIndex={maxPages} paginFunction={handlePagination} />
       </div>
     </div>
   );
 };
+
+export default ShowFeedbacksTable;
