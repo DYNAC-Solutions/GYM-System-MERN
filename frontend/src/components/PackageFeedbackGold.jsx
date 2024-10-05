@@ -69,36 +69,36 @@ const FeedbackPopup = ({ feedback, onClose, onUpdateFeedback }) => {
   };
 
   return (
-    <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'>
-      <div className='bg-white p-5 rounded-lg shadow-lg'>
-        <h2 className='text-xl mb-3'>Update Feedback</h2>
-        <textarea
-          value={updatedNote}
-          onChange={(e) => setUpdatedNote(e.target.value)}
-          className='border p-2 w-full'
-          rows='3'
-        />
-        <div className='flex gap-2 mt-2'>
-          <span>Rating:</span>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <FontAwesomeIcon
-              key={star}
-              icon={faStar}
-              className={`cursor-pointer ${star <= updatedRate ? 'text-yellow-500' : 'text-zinc-500'}`}
-              onClick={() => setUpdatedRate(star)}
-            />
-          ))}
-        </div>
-        <div className='flex justify-end mt-4'>
-          <button className='bg-blue-500 text-white px-3 py-1 rounded' onClick={handleUpdate}>
-            Update Changes
-          </button>
-          <button className='ml-2 bg-gray-300 px-3 py-1 rounded' onClick={onClose}>
-            Cancel
-          </button>
-        </div>
+    <div className='fixed inset-0 items-center justify-center bg-black bg-opacity-50 z-50' style={{ marginTop: '250px' }}>
+    <div className='bg-white p-5 rounded-lg shadow-lg'>
+      <h2 className='text-xl mb-3'>Update Feedback</h2>
+      <textarea
+        value={updatedNote}
+        onChange={(e) => setUpdatedNote(e.target.value)}
+        className='border p-2 w-full'
+        rows='3'
+      />
+      <div className='flex gap-2 mt-2'>
+        <span>Rating:</span>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <FontAwesomeIcon
+            key={star}
+            icon={faStar}
+            className={`cursor-pointer ${star <= updatedRate ? 'text-yellow-500' : 'text-yellow-300'}`} // Change text color to yellow for unselected stars
+            onClick={() => setUpdatedRate(star)}
+          />
+        ))}
+      </div>
+      <div className='flex justify-end mt-4'>
+        <button className='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600' onClick={handleUpdate}>
+          Update Changes
+        </button>
+        <button className='ml-2 bg-gray-300 px-3 py-1 rounded' onClick={onClose}>
+          Cancel
+        </button>
       </div>
     </div>
+  </div>
   );
 };
 
@@ -127,7 +127,7 @@ const PackageFeedback = () => {
 
   return (
     <div className='flex flex-col gap-3 justify-center items-center p-10 w-[60vw] rounded-xl min-h-[25vh] bg-[#c7c7c7c4] relative'>
-      <p className='uppercase text-[7.5em] font-semibold text-yellow-500 -z-10 absolute -top-3 left-5'>silver</p>
+      <p className='uppercase text-[7.5em] font-semibold text-yellow-500 -z-10 absolute -top-3 left-5'>Gold</p>
 
       {/* Display feedback blocks */}
       {feedbacks.length > 0 ? (
