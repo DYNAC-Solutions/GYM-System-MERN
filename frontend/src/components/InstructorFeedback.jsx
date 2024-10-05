@@ -2,33 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faCircleUser } from '@fortawesome/free-solid-svg-icons';
 
-const ReviewBlock = ({ cusName, rate, note, ifDate }) => {
-
+const ReviewBlock = ({ feedback, onUpdate }) => {
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const formattedDate = date.toLocaleDateString(undefined, options);
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
     return { formattedDate, formattedTime };
-};
+  };
 
-const { formattedDate, formattedTime } = formatDate(ifDate);
+  const { formattedDate, formattedTime } = formatDate(feedback.ifDate);
 
   const stars = () => {
     const starElements = [];
-    
-    for (let i = 0; i < rate; i++) {
+
+    for (let i = 0; i < feedback.ifRate; i++) {
       starElements.push(
         <FontAwesomeIcon className="text-yellow-500 text-[1.25em]" key={i} icon={faStar} />
       );
     }
-    for (let i = rate; i < 5; i++) {
+    for (let i = feedback.ifRate; i < 5; i++) {
       starElements.push(
         <FontAwesomeIcon className="text-zinc-500 text-[1.25em]" key={i} icon={faStar} />
       );
     }
-    
+
     return starElements;
   };
 
@@ -38,19 +36,89 @@ const { formattedDate, formattedTime } = formatDate(ifDate);
         <FontAwesomeIcon className='text-[60px]' icon={faCircleUser} />
       </div>
       <div className='flex-[5]'>
-      
-        <p className='text-[.85em]'>{cusName}</p>
-        <p className='text-[.85em]'>{note}</p>
+        <p className='text-[.85em]'>{feedback.cusName}</p>
+        <p className='text-[.85em]'>{feedback.ifNote}</p>
         <div className='flex gap-3 justify-end'>{stars()}</div>
         <p className='text-[.85em]'>{formattedDate}</p>
-            <p className='text-[.85em]'>{formattedTime}</p>
+        <p className='text-[.85em]'>{formattedTime}</p>
+        <button
+          className='mt-2 text-blue-500 hover:underline'
+          onClick={() => onUpdate(feedback)}
+        >
+          Update
+        </button>
       </div>
     </div>
   );
 };
 
+const FeedbackPopup = ({ feedback, onClose, onUpdateFeedback }) => {
+  const [updatedNote, setUpdatedNote] = useState(feedback.ifNote);
+  const [updatedRate, setUpdatedRate] = useState(feedback.ifRate);
+
+  const handleUpdate = () => {
+    const updatedFeedback = {
+      ...feedback,
+      ifNote: updatedNote,
+      ifRate: updatedRate,
+    };
+    
+    fetch('http://localhost:3001/api/update-instruct-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedFeedback),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data) {
+          onUpdateFeedback(updatedFeedback);
+          onClose();
+        } else {
+          console.error('Update failed:', data.message);
+        }
+      })
+      .catch(error => console.error('Error updating feedback:', error));
+  };
+
+  return (
+    <div className='fixed inset-0 flex justify-center mt-20 bg-black bg-opacity-50 z-50'>
+      <div className='bg-white p-5 rounded-lg shadow-lg w-[400px]'>
+        <h2 className='text-xl mb-3'>Update Feedback</h2>
+        <textarea
+          value={updatedNote}
+          onChange={(e) => setUpdatedNote(e.target.value)}
+          className='border p-2 w-full'
+          rows='3'
+        />
+        <div className='flex gap-2 mt-2'>
+          <span>Rating:</span>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <FontAwesomeIcon
+              key={star}
+              icon={faStar}
+              className={`cursor-pointer ${star <= updatedRate ? 'text-yellow-500' : 'text-zinc-500'}`}
+              onClick={() => setUpdatedRate(star)}
+            />
+          ))}
+        </div>
+        <div className='flex justify-end mt-4'>
+          <button className='bg-blue-500 text-white px-3 py-1 rounded' onClick={handleUpdate}>
+            Update Changes
+          </button>
+          <button className='ml-2 bg-gray-300 px-3 py-1 rounded' onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
 const InstructorFeedback = ({ name }) => {
   const [feedbacks, setFeedbacks] = useState([]);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
 
   useEffect(() => {
     // Fetch feedback data from the API
@@ -63,6 +131,14 @@ const InstructorFeedback = ({ name }) => {
       })
       .catch(error => console.error('Error fetching feedbacks:', error));
   }, [name]);
+
+  const handleUpdateClick = (feedback) => {
+    setSelectedFeedback(feedback);
+  };
+
+  const handleUpdateFeedback = (updatedFeedback) => {
+    setFeedbacks(feedbacks.map(f => (f._id === updatedFeedback._id ? updatedFeedback : f)));
+  };
 
   return (
     <div className='flex gap-3 justify-center items-start p-10 w-[60vw] rounded-xl bg-[#c7c7c7c4]'>
@@ -78,16 +154,23 @@ const InstructorFeedback = ({ name }) => {
           feedbacks.map(feedback => (
             <ReviewBlock
               key={feedback._id}
-              rate={feedback.ifRate}
-              note={feedback.ifNote}
-              cusName={feedback.cusName}
-              ifDate={feedback.ifDate}
+              feedback={feedback}
+              onUpdate={handleUpdateClick}
             />
           ))
         ) : (
           <p>No feedback available for this instructor.</p>
         )}
       </div>
+
+      {/* Show popup if selected feedback is not null */}
+      {selectedFeedback && (
+        <FeedbackPopup
+          feedback={selectedFeedback}
+          onClose={() => setSelectedFeedback(null)}
+          onUpdateFeedback={handleUpdateFeedback}
+        />
+      )}
     </div>
   );
 };
