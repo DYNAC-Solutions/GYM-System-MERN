@@ -36,17 +36,17 @@ const FeedBackType = ({ type, whenChange }) => {
   );
 };
 
-
 const CreateInstructorFeedback = () => {
-
   const instructorList = instructors;
   const packagesTypes = ['silver', 'gold', 'platinum'];
   const feedbackTypes = ['question', 'suggestion', 'complaint'];
 
   const [ifID, setifID] = useState(0);
+  const [pfID, setpfID] = useState(0);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [instructor, setInstructor] = useState('');
+  const [packageType, setPackageType] = useState('');
   const [reviewType, setReviewType] = useState('');
   const [feedbackNote, setFeedbackNote] = useState('');
   const [rate, setRate] = useState(0);
@@ -55,22 +55,28 @@ const CreateInstructorFeedback = () => {
 
   const inputRating = (newRate) => {
     setRate(newRate + 1);
-  }
+  };
 
   const changeType = (thisType) => {
     setType(thisType);
-    setDataList(thisType == 'packages' ? packagesTypes : instructorList );
+    setDataList(thisType === 'packages' ? packagesTypes : instructorList);
   };
 
   useEffect(() => {
     fetchMaxIdAndSetId();
-  })
+  }, []);
 
   const fetchMaxIdAndSetId = async () => {
     try {
-      const response = await Axios.get('http://localhost:3001/api/get-instruct-feedbacks-maxid'); //http://localhost:3001/api/getmaxid  https://book-shop-dep.vercel.app/api/getmaxid
-      const maxId = response.data?.maxId; 
-      setifID(maxId + 1);  // set next product id 
+      if (type === 'packages') {
+        const response = await Axios.get('http://localhost:3001/api/get-package-feedbacks-maxid');
+        const maxId = response.data?.maxId;
+        setpfID(maxId + 1); // set next package feedback id
+      } else {
+        const response = await Axios.get('http://localhost:3001/api/get-instruct-feedbacks-maxid');
+        const maxId = response.data?.maxId;
+        setifID(maxId + 1); // set next instructor feedback id
+      }
     } catch (error) {
       console.error('Axios Error (getMaxId): ', error);
     }
@@ -78,41 +84,59 @@ const CreateInstructorFeedback = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
-    // Prepare the data to send to the API
-    const feedbackData = {
-      ifID: ifID,
-      cusName: fullName,
-      cusEmail: email,
-      iName: instructor,
-      ifType: reviewType,
-      ifRate: rate,
-      ifNote: feedbackNote,
-      ifDate: Date(),
-    };
-  
+
+    let feedbackData;
+
+    if (type === 'packages') {
+      feedbackData = {
+        pfID: pfID,
+        cusName: fullName,
+        cusEmail: email,
+        pName: packageType,
+        pfType: reviewType,
+        pfRate: rate,
+        pfNote: feedbackNote,
+        pfDate: new Date(),
+      };
+    } else {
+      feedbackData = {
+        ifID: ifID,
+        cusName: fullName,
+        cusEmail: email,
+        iName: instructor,
+        ifType: reviewType,
+        ifRate: rate,
+        ifNote: feedbackNote,
+        ifDate: new Date(),
+      };
+    }
+
     console.log('Submitting feedback:', feedbackData);
-  
+
     try {
-      const response = await Axios.post('http://localhost:3001/api/create-instruct-feedback', feedbackData);
+      const apiEndpoint = type === 'packages'
+        ? 'http://localhost:3001/api/create-package-feedback'
+        : 'http://localhost:3001/api/create-instruct-feedback';
+
+      const response = await Axios.post(apiEndpoint, feedbackData);
+
       if (response.status === 200) {
-        alert('Successfully added instructor feedback!');
-        // Optionally reset the form here
+        alert('Successfully added feedback!');
+        // Reset the form here
         setFullName('');
         setEmail('');
         setInstructor('');
+        setPackageType('');
         setReviewType('');
         setFeedbackNote('');
         setRate(0);
-        // Fetch the max ID again if needed
-        fetchMaxIdAndSetId();
+        fetchMaxIdAndSetId(); // Fetch new ID for the next submission
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
       alert('An error occurred while submitting feedback. Please try again.'); // Alert on error
     }
   };
-  
 
   return (
     <div>
@@ -148,22 +172,20 @@ const CreateInstructorFeedback = () => {
           </label>
         </div>
         <div className='w-full flex items-center relative'>
-          
           {
-              type === 'packages' ? (
-                <label className='flex-1 text-center font-semibold text-stone-800' htmlFor="review_instructor">Package</label>
-              ) : (
-                <label className='flex-1 text-center font-semibold text-stone-800' htmlFor="review_instructor">Instructor</label>
-              )
-            }
+            type === 'packages' ? (
+              <label className='flex-1 text-center font-semibold text-stone-800' htmlFor="review_package">Package</label>
+            ) : (
+              <label className='flex-1 text-center font-semibold text-stone-800' htmlFor="review_instructor">Instructor</label>
+            )
+          }
           <select
             className='flex-[2] hover:shadow-md hover:shadow-zinc-900 hover:outline-none outline-none border-none py-1 px-3 rounded-lg focus:shadow-md focus:shadow-zinc-900 focus:outline-none transition-all duration-500'
             name="review_instructor"
             id="review_instructor"
-            value={instructor}
-            onChange={(e) => setInstructor(e.target.value)} // Update the state
+            value={type === 'packages' ? packageType : instructor}
+            onChange={(e) => type === 'packages' ? setPackageType(e.target.value) : setInstructor(e.target.value)} // Update the state
           >
-            
             {
               type === 'packages' ? (
                 <option className='text-zinc-400' value="">Select Package ..</option>
@@ -171,7 +193,6 @@ const CreateInstructorFeedback = () => {
                 <option className='text-zinc-400' value="">Select Instructor ..</option>
               )
             }
-            
             {
               dataList.map((content, index) => (
                 <option key={index} className='capitalize' value={content}>{content}</option>
@@ -189,8 +210,8 @@ const CreateInstructorFeedback = () => {
           >
             <option className='text-zinc-400' value="">Choose Feedback Type . .</option>
             {
-              feedbackTypes.map((content, index) => (
-                <option key={index} className='capitalize' value={content}>{content}</option>
+              feedbackTypes.map((feedback, index) => (
+                <option key={index} className='capitalize' value={feedback}>{feedback}</option>
               ))
             }
           </select>
@@ -198,33 +219,22 @@ const CreateInstructorFeedback = () => {
         <div className='w-full flex items-center justify-center relative'>
           <SetRate rate={rate} handleRating={inputRating} />
         </div>
-        <div className='w-full flex items-center relative'>
-          <textarea
-            className='w-full outline-none hover:shadow-md hover:shadow-zinc-900 hover:outline-none border-none py-1 px-3 rounded-lg focus:shadow-md focus:shadow-zinc-900 focus:outline-none transition-all duration-500'
-            name="user_feedback"
-            id="user_feedback"
-            placeholder='Your Feedback...'
-            value={feedbackNote}
-            onChange={(e) => setFeedbackNote(e.target.value)} // Update the state
-          />
-        </div>
-        <div className='w-full pt-3 flex items-center justify-center gap-4 relative'>
-          <button
-            className='flex items-center justify-center py-2 uppercase font-semibold px-10 rounded-xl bg-yellow-500 hover:shadow-md hover:shadow-zinc-900 hover:outline-none transition-all duration-500'
-            type="reset"
-          >
-            Cancel
-          </button>
-          <button
-            className='flex items-center justify-center py-2 uppercase font-semibold px-10 rounded-xl bg-yellow-500 hover:shadow-md hover:shadow-zinc-900 hover:outline-none transition-all duration-500'
-            type="submit"
-          >
-            Submit
-          </button>
-        </div>
+
+        <textarea
+          className='resize-none w-full h-24 hover:shadow-md hover:shadow-zinc-900 hover:outline-none border-none py-2 px-3 rounded-lg focus:shadow-md focus:shadow-zinc-900 focus:outline-none transition-all duration-500'
+          placeholder='Leave your feedback here...'
+          value={feedbackNote}
+          onChange={(e) => setFeedbackNote(e.target.value)} // Update the state
+        ></textarea>
+        <button
+          className='bg-amber-400 px-3 py-1 rounded-lg font-semibold text-white hover:bg-amber-300 transition-all duration-300'
+          type="submit"
+        >
+          Submit Feedback
+        </button>
       </form>
     </div>
   );
-}
+};
 
 export default CreateInstructorFeedback;

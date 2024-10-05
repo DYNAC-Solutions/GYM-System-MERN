@@ -2,7 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faCircleUser } from '@fortawesome/free-solid-svg-icons';
 
-const ReviewBlock = ({ rate, note }) => {
+const ReviewBlock = ({ cusName, rate, note, ifDate }) => {
+
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = date.toLocaleDateString(undefined, options);
+    const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    return { formattedDate, formattedTime };
+};
+
+const { formattedDate, formattedTime } = formatDate(ifDate);
+
   const stars = () => {
     const starElements = [];
     
@@ -26,8 +38,12 @@ const ReviewBlock = ({ rate, note }) => {
         <FontAwesomeIcon className='text-[60px]' icon={faCircleUser} />
       </div>
       <div className='flex-[5]'>
+      
+        <p className='text-[.85em]'>{cusName}</p>
         <p className='text-[.85em]'>{note}</p>
         <div className='flex gap-3 justify-end'>{stars()}</div>
+        <p className='text-[.85em]'>{formattedDate}</p>
+            <p className='text-[.85em]'>{formattedTime}</p>
       </div>
     </div>
   );
@@ -64,6 +80,8 @@ const InstructorFeedback = ({ name }) => {
               key={feedback._id}
               rate={feedback.ifRate}
               note={feedback.ifNote}
+              cusName={feedback.cusName}
+              ifDate={feedback.ifDate}
             />
           ))
         ) : (

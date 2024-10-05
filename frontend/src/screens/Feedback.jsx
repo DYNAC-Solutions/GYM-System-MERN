@@ -15,10 +15,10 @@ const Feedback = () => {
             Add Feedback
           </a>
           <a className='w-[350px] text-center uppercase font-bold tracking-wider bg-yellow-500 py-2 rounded-lg hover:shadow-lg hover:shadow-stone-500 transition-all duration-300'  href={`/feedback/${'packages'}`}>
-            See Instructor Feedbacks
+            See Package Feedbacks
           </a>
           <a className='w-[350px] text-center uppercase font-bold tracking-wider bg-yellow-500 py-2 rounded-lg hover:shadow-lg hover:shadow-stone-500 transition-all duration-300'  href={`/feedback/${'instructors'}`}>
-            See Package Feedbacks
+            See Instructor Feedbacks
           </a>
         </div>
       </div>
